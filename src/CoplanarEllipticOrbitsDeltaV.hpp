@@ -2,19 +2,47 @@
 // Created by julia on 28.07.23.
 //
 
-#ifndef VELOCITY_COMPLANARELLIPTICOBITSDELTAV_HPP
-#define VELOCITY_COMPLANARELLIPTICOBITSDELTAV_HPP
+#ifndef VELOCITY_COPLANARELLIPTICORBITSDELTAV_HPP
+#define VELOCITY_COPLANARELLIPTICORBITSDELTAV_HPP
 #include <cmath>
 
 #include "Types.h"
 namespace Maneuvers {
-    scalar computeSemimajorAxisTransferOrbit(const Orbit2 first, const Orbit2 final,
+
+    scalar simpleIterationMethodOneIter(scalar digit, const scalar semimajorAxis1, const scalar semiminorAxis1,
+                                 const scalar semimajorAxis2, const scalar semiminorAxis2){
+        const scalar digitPow2 = digit * digit;
+        const scalar const1 = digitPow2 * digitPow2 - 2 * digitPow2 * semimajorAxis1
+                + semimajorAxis1 * semimajorAxis1 - semiminorAxis1 * semiminorAxis1;
+        const scalar const2 = digitPow2 * digitPow2 - 2 * digitPow2 * semimajorAxis2
+                + semimajorAxis2 * semimajorAxis2 - semiminorAxis2 * semiminorAxis2;
+        const scalar deltaConsts = const1 - const2;
+        digit = (digitPow2 * deltaConsts + semiminorAxis2 * const1 - semimajorAxis1 * const2) /
+                (2 * (std::sqrt(semimajorAxis2) * const1 - std::sqrt(semimajorAxis1) * const2));
+        return digit;
+    }
+    scalar simpleIterationMethod( const scalar semimajorAxis1, const scalar semiminorAxis1,
+                                 const scalar semimajorAxis2, const scalar semiminorAxis2){
+        scalar startPeriapse = semimajorAxis1;
+        startPeriapse = simpleIterationMethodOneIter(startPeriapse,semimajorAxis1, semiminorAxis1,
+                    semimajorAxis2, semiminorAxis2);
+        while (std::abs(startPeriapse - simpleIterationMethodOneIter(startPeriapse,semimajorAxis1, semiminorAxis1,
+                                                                     semimajorAxis2, semiminorAxis2)) > std::numeric_limits<scalar>::epsilon()){
+            startPeriapse = simpleIterationMethodOneIter(startPeriapse,semimajorAxis1, semiminorAxis1,
+                                                         semimajorAxis2, semiminorAxis2);
+        }
+        return startPeriapse;
+    }
+    scalar computeSemimajorAxisTransferOrbit(const Orbit2 &first, const Orbit2 &final,
                                              const scalar trueAnomaly1, const scalar trueAnomaly2,
                                              const scalar ascendNodeTransferOrbit){
 
         const scalar cosDeltaTrueAnomaly1AscendNode = std::cos(trueAnomaly1 - ascendNodeTransferOrbit);
         const scalar cosDeltaTrueAnomaly2AscendNode = std::cos(trueAnomaly2 - ascendNodeTransferOrbit);
 
+        if (std::abs(cosDeltaTrueAnomaly1AscendNode - cosDeltaTrueAnomaly2AscendNode) < std::numeric_limits<scalar>::epsilon()){
+
+        }
         // Polar equation of an orbit
         // u = a + b cos(trueAnomaly - ascendNode)
         const scalar polarEq1 = first.a + first.b * cosDeltaTrueAnomaly1AscendNode;
@@ -27,9 +55,9 @@ namespace Maneuvers {
         return semimajorAxisTransferOrbit;
     }
 
-    scalar coplanarManeuverDeltaV_(const Orbit2 first, const Orbit2 final,
+    void coplanarEllipticOrbitsDeltaV(const Orbit2 &first, const Orbit2 &final,
                                    const scalar trueAnomaly1, const scalar trueAnomaly2,
-                                   const scalar ascendNodeTransferOrbit, const scalar gravAcceleration){
+                                   const scalar ascendNodeTransferOrbit, const scalar gravParameter){
         const scalar semiminorAxis1 = (1 - first.e) * first.a;
         const scalar semiminorAxis2 = (1 - final.e) * final.a;
         const scalar cosDeltaTrueAnomalyAscendNode1 = std::cos(trueAnomaly1 - ascendNodeTransferOrbit);
@@ -68,4 +96,4 @@ namespace Maneuvers {
     }
 
 }
-#endif //VELOCITY_COMPLANARELLIPTICOBITSDELTAV_HPP
+#endif //VELOCITY_COPLANARELLIPTICORBITSDELTAV_HPP

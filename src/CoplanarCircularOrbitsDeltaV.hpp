@@ -2,8 +2,8 @@
 // Created by julia on 20.07.23.
 //
 
-#ifndef VELOCITY_COMPLANARCIRCALORBITSDELTAV_HPP
-#define VELOCITY_COMPLANARCIRCALORBITSDELTAV_HPP
+#ifndef VELOCITY_COPLANARCIRCULARORBITSDELTAV_HPP
+#define VELOCITY_COPLANARCIRCULARORBITSDELTAV_HPP
 #include <cmath>
 #include "Types.h"
 namespace Maneuvers {
@@ -22,7 +22,7 @@ namespace Maneuvers {
 
         const scalar deltaSemimajorAxis = (final.a - start.a) / r0;
         const scalar absDeltaSemimajorAxis = std::abs(deltaSemimajorAxis);
-        const scalar delta1 = 0.25 * absDeltaSemimajorAxis * velocityInApogree;
+
         const scalar resultdV = absDeltaSemimajorAxis > deltaE ?
                 absDeltaSemimajorAxis / 2 * velocityInApogree :
                 std::sqrt(deltaE * deltaE - 0.75 * deltaSemimajorAxis * deltaSemimajorAxis) * velocityInApogree;
@@ -31,4 +31,4 @@ namespace Maneuvers {
     }
 
 };
-#endif //VELOCITY_COMPLANARCIRCALORBITSDELTAV_HPP
+#endif //VELOCITY_COPLANARCIRCULARORBITSDELTAV_HPP
