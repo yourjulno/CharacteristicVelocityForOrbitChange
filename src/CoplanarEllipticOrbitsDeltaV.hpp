@@ -5,44 +5,39 @@
 #ifndef VELOCITY_COPLANARELLIPTICORBITSDELTAV_HPP
 #define VELOCITY_COPLANARELLIPTICORBITSDELTAV_HPP
 #include <cmath>
-
+#include <array>
 #include "Types.h"
 namespace Maneuvers {
 
-    scalar simpleIterationMethodOneIter(scalar digit, const scalar semimajorAxis1, const scalar semiminorAxis1,
-                                 const scalar semimajorAxis2, const scalar semiminorAxis2){
-        const scalar digitPow2 = digit * digit;
-        const scalar const1 = digitPow2 * digitPow2 - 2 * digitPow2 * semimajorAxis1
-                + semimajorAxis1 * semimajorAxis1 - semiminorAxis1 * semiminorAxis1;
-        const scalar const2 = digitPow2 * digitPow2 - 2 * digitPow2 * semimajorAxis2
-                + semimajorAxis2 * semimajorAxis2 - semiminorAxis2 * semiminorAxis2;
-        const scalar deltaConsts = const1 - const2;
-        digit = (digitPow2 * deltaConsts + semiminorAxis2 * const1 - semimajorAxis1 * const2) /
-                (2 * (std::sqrt(semimajorAxis2) * const1 - std::sqrt(semimajorAxis1) * const2));
-        return digit;
-    }
-    scalar simpleIterationMethod( const scalar semimajorAxis1, const scalar semiminorAxis1,
-                                 const scalar semimajorAxis2, const scalar semiminorAxis2){
-        scalar startPeriapse = semimajorAxis1;
-        startPeriapse = simpleIterationMethodOneIter(startPeriapse,semimajorAxis1, semiminorAxis1,
-                    semimajorAxis2, semiminorAxis2);
-        while (std::abs(startPeriapse - simpleIterationMethodOneIter(startPeriapse,semimajorAxis1, semiminorAxis1,
-                                                                     semimajorAxis2, semiminorAxis2)) > std::numeric_limits<scalar>::epsilon()){
-            startPeriapse = simpleIterationMethodOneIter(startPeriapse,semimajorAxis1, semiminorAxis1,
-                                                         semimajorAxis2, semiminorAxis2);
-        }
-        return startPeriapse;
-    }
-    scalar computeSemimajorAxisTransferOrbit(const Orbit2 &first, const Orbit2 &final,
-                                             const scalar trueAnomaly1, const scalar trueAnomaly2,
-                                             const scalar ascendNodeTransferOrbit){
+    /** angleBetweenImpulseAndTransversal1 -- angle Between 1st Impulse and Transversal Velocity [0;360] deg
+     *  angleBetweenImpulseAndTransversal2 -- angle Between 2nd Impulse and Transversal Velocity [0;360] deg
+     *  polarEq1 -- polar Equation of the start Orbit (meters)
+     *  polarEq2 -- polar Equation of the final Orbit (meters)
+     *  periapseA1 -- periapse of the start Orbit (meters)
+     *  periapseA2 -- periapse of the final Orbit (meters)
+     *  semimajorAxisTransferOrbit -- semimajor Axis of the Transfer Orbit (meters)
+     */
 
+    struct parametersForTransfer {
+        scalar angleBetweenImpulseAndTransversal1;
+        scalar angleBetweenImpulseAndTransversal2;
+        scalar polarEq1;
+        scalar polarEq2;
+        scalar periapseA1;
+        scalar periapseA2;
+        scalar semimajorAxisTransferOrbit;
+    };
+
+
+    [[nodiscard]] parametersForTransfer computeParamsForTransfer(const EllipticOrbit &first, const EllipticOrbit &final,
+                                   const scalar trueAnomaly1, const scalar trueAnomaly2,
+                                   const scalar ascendNodeTransferOrbit) {
+        const scalar semiminorAxis1 = (1 - first.e) * first.a;
+        const scalar semiminorAxis2 = (1 - final.e) * final.a;
         const scalar cosDeltaTrueAnomaly1AscendNode = std::cos(trueAnomaly1 - ascendNodeTransferOrbit);
         const scalar cosDeltaTrueAnomaly2AscendNode = std::cos(trueAnomaly2 - ascendNodeTransferOrbit);
 
-        if (std::abs(cosDeltaTrueAnomaly1AscendNode - cosDeltaTrueAnomaly2AscendNode) < std::numeric_limits<scalar>::epsilon()){
 
-        }
         // Polar equation of an orbit
         // u = a + b cos(trueAnomaly - ascendNode)
         const scalar polarEq1 = first.a + first.b * cosDeltaTrueAnomaly1AscendNode;
@@ -52,26 +47,6 @@ namespace Maneuvers {
                                                   (cosDeltaTrueAnomaly1AscendNode - cosDeltaTrueAnomaly2AscendNode);
         const scalar semimajorAxisTransferOrbit = polarEq1 -
                                                   semiminorAxisTransferOrbit * cosDeltaTrueAnomaly1AscendNode;
-        return semimajorAxisTransferOrbit;
-    }
-
-    void coplanarEllipticOrbitsDeltaV(const Orbit2 &first, const Orbit2 &final,
-                                   const scalar trueAnomaly1, const scalar trueAnomaly2,
-                                   const scalar ascendNodeTransferOrbit, const scalar gravParameter){
-        const scalar semiminorAxis1 = (1 - first.e) * first.a;
-        const scalar semiminorAxis2 = (1 - final.e) * final.a;
-        const scalar cosDeltaTrueAnomalyAscendNode1 = std::cos(trueAnomaly1 - ascendNodeTransferOrbit);
-        const scalar cosDeltaTrueAnomalyAscendNode2 = std::cos(trueAnomaly2 - ascendNodeTransferOrbit);
-
-        // Polar equation of an orbit
-        // u = a + b cos(trueAnomaly - ascendNode)
-        const scalar polarEq1 = first.a + first.b * cosDeltaTrueAnomalyAscendNode1;
-        const scalar polarEq2 = final.a + final.b * cosDeltaTrueAnomalyAscendNode2;
-
-        const scalar semiminorAxisTransferOrbit = (polarEq1 - polarEq2) /
-                                                  (cosDeltaTrueAnomalyAscendNode1 - cosDeltaTrueAnomalyAscendNode2);
-        const scalar semimajorAxisTransferOrbit = polarEq1 -
-                                                  semiminorAxisTransferOrbit * cosDeltaTrueAnomalyAscendNode1;
 
         // A1 -- the periapse of 1st Orbit
         // angleBetweenImpulseAndTransversal1 is measured counterclockwise between 0 and 360 deg
@@ -92,8 +67,46 @@ namespace Maneuvers {
                                   (std::sqrt(semimajorAxisTransferOrbit) * sinDeltaTrueAnomaly2AscendNode2 - std::sqrt(final.a));
         const scalar angleBetweenImpulseAndTransversal2 = std::atan(sinDeltaTrueAnomaly2AscendNode2) /
                                                           (polarEq2 - periapseA2 * std::sqrt(final.a));
+        return parametersForTransfer{angleBetweenImpulseAndTransversal1, angleBetweenImpulseAndTransversal2,
+                                     polarEq1, polarEq2,
+                                     periapseA1, periapseA2,
+                                     semimajorAxisTransferOrbit};
+    }
+
+    scalar getFunctionForMinimum(const parametersForTransfer &paramsForTransfer){
+
+       const scalar H = ((paramsForTransfer.polarEq1 + paramsForTransfer.semimajorAxisTransferOrbit) /
+               paramsForTransfer.periapseA1 / std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) + 1) * std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal1) -
+               ((paramsForTransfer.polarEq2 + paramsForTransfer.semimajorAxisTransferOrbit) /
+                paramsForTransfer.periapseA2 / std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) + 1) * std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal2);
+
+       const scalar G = (paramsForTransfer.polarEq1 / paramsForTransfer.periapseA1 - paramsForTransfer.periapseA1) * std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal1) -
+               (paramsForTransfer.polarEq2 / paramsForTransfer.periapseA2 - paramsForTransfer.periapseA2) * std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal2);
+
+       const scalar F = (paramsForTransfer.polarEq1 - paramsForTransfer.semimajorAxisTransferOrbit) *
+               (1 + std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) / paramsForTransfer.periapseA1) * std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal1) +
+               (paramsForTransfer.polarEq1 - paramsForTransfer.periapseA1 * std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit)) * std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal1) -
+               (paramsForTransfer.polarEq2 - paramsForTransfer.semimajorAxisTransferOrbit) *
+               (1 + std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) / paramsForTransfer.periapseA2) * std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal2) +
+               (paramsForTransfer.polarEq2 - paramsForTransfer.periapseA2 * std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit)) * std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal2);
+
+       return std::sqrt(H * H + G * G + F * F);
 
     }
 
+    std::array<scalar, 3> computeParametersForVelocity(const EllipticOrbit &first, const EllipticOrbit &final,
+                                                       const scalar hTrueAnomaly1, const scalar hTrueAnomaly2,
+                                                       const scalar hAscendNode){
+        auto params = computeParamsForTransfer(first, final, hTrueAnomaly1,
+                                               hTrueAnomaly2, hAscendNode);
+        scalar functionForMin = getFunctionForMinimum(params);
+
+
+
+    }
+
+
+
 }
+
 #endif //VELOCITY_COPLANARELLIPTICORBITSDELTAV_HPP

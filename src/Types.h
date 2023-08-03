@@ -8,7 +8,7 @@
 namespace Maneuvers {
     using scalar = double;
 
-    struct Orbit {
+    struct CircularOrbit {
     scalar a; // semimajor axis
     scalar e; // eccentricity
     scalar i; //inclination
@@ -16,10 +16,10 @@ namespace Maneuvers {
     scalar periapsisArg; // pericenter argument
     };
 
-    struct Orbit2{
+    struct EllipticOrbit{
         scalar a;
         scalar e; // eccentricity
-        scalar b;
+        scalar b; //semiminorAxis
         scalar w;
     };
 }  // namespace Maneuvers
