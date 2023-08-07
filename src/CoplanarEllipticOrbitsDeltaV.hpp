@@ -4,10 +4,12 @@
 
 #ifndef VELOCITY_COPLANARELLIPTICORBITSDELTAV_HPP
 #define VELOCITY_COPLANARELLIPTICORBITSDELTAV_HPP
+
 #include <cmath>
 #include <array>
 #include <optional>
 #include "Types.h"
+
 namespace Maneuvers {
 
     /** angleBetweenImpulseAndTransversal1 -- angle Between 1st Impulse and Transversal Velocity [0;360] deg
@@ -30,28 +32,33 @@ namespace Maneuvers {
     };
 
     bool isCorrectValues(const scalar cosDeltaTrueAnomaly1AscendNode, const scalar cosDeltaTrueAnomaly2AscendNode,
-                         const scalar angleBetweenImpulseAndTransversalVelocity1, const scalar angleBetweenImpulseAndTransversalVelocity2,
-                         const scalar polarEq1, const scalar polarEq2){
+                         const scalar angleBetweenImpulseAndTransversalVelocity1,
+                         const scalar angleBetweenImpulseAndTransversalVelocity2,
+                         const scalar polarEq1, const scalar polarEq2) {
 
         if (std::abs(cosDeltaTrueAnomaly1AscendNode - cosDeltaTrueAnomaly2AscendNode)
-           < std::numeric_limits<scalar>::epsilon() and std::abs(polarEq1 - polarEq2)
-                                                        > std::numeric_limits<scalar>::epsilon()){
-             return false;
+            < std::numeric_limits<scalar>::epsilon() and std::abs(polarEq1 - polarEq2)
+                                                         > std::numeric_limits<scalar>::epsilon()) {
+            return false;
         }
-        auto is_correct {[](const scalar angleBetweenImpulseAndTransversalVelocity)
-        {return std::abs(angleBetweenImpulseAndTransversalVelocity - static_cast<scalar>(0)) < std::numeric_limits<scalar>::epsilon() or
-            std::abs(angleBetweenImpulseAndTransversalVelocity - M_PI) < std::numeric_limits<scalar>::epsilon() or
-            std::abs(angleBetweenImpulseAndTransversalVelocity - 2 * M_PI) < std::numeric_limits<scalar>::epsilon(); }};
+        auto is_correct = [](const scalar angleBetweenImpulseAndTransversalVelocity) {
+            return std::abs(angleBetweenImpulseAndTransversalVelocity - static_cast<scalar>(0)) <
+                   std::numeric_limits<scalar>::epsilon() or
+                   std::abs(angleBetweenImpulseAndTransversalVelocity - M_PI) <
+                   std::numeric_limits<scalar>::epsilon() or
+                   std::abs(angleBetweenImpulseAndTransversalVelocity - 2 * M_PI) <
+                   std::numeric_limits<scalar>::epsilon();
+        };
 
-        if (!is_correct(angleBetweenImpulseAndTransversalVelocity1)
-            or !is_correct(angleBetweenImpulseAndTransversalVelocity2))
-        {return false;}
+        return is_correct(angleBetweenImpulseAndTransversalVelocity1)
+               && is_correct(angleBetweenImpulseAndTransversalVelocity2);
     }
 
-    [[nodiscard]] std::optional<parametersForTransfer> computeParamsForTransfer(const EllipticOrbit &first, const EllipticOrbit &final,
-                                                                 const scalar trueAnomaly1, const scalar trueAnomaly2,
-                                                                 const scalar ascendNodeTransferOrbit, const scalar angleBetweenImpulseAndTransversal1,
-                                                                 const scalar angleBetweenImpulseAndTransversal2) {
+    [[nodiscard]] std::optional<parametersForTransfer>
+    computeParamsForTransfer(const EllipticOrbit &first, const EllipticOrbit &final,
+                             const scalar trueAnomaly1, const scalar trueAnomaly2,
+                             const scalar ascendNodeTransferOrbit, const scalar angleBetweenImpulseAndTransversal1,
+                             const scalar angleBetweenImpulseAndTransversal2) {
         const scalar semiminorAxis1 = (1 - first.e) * first.a;
         const scalar semiminorAxis2 = (1 - final.e) * final.a;
 
@@ -63,28 +70,28 @@ namespace Maneuvers {
         const scalar polarEq1 = first.a + first.b * cosDeltaTrueAnomaly1AscendNode;
         const scalar polarEq2 = final.a + final.b * cosDeltaTrueAnomaly2AscendNode;
 
-        if(!isCorrectValues(cosDeltaTrueAnomaly1AscendNode, cosDeltaTrueAnomaly2AscendNode,
-                            angleBetweenImpulseAndTransversal1, angleBetweenImpulseAndTransversal2,
-                            polarEq1, polarEq2)){
+        if (!isCorrectValues(cosDeltaTrueAnomaly1AscendNode, cosDeltaTrueAnomaly2AscendNode,
+                             angleBetweenImpulseAndTransversal1, angleBetweenImpulseAndTransversal2,
+                             polarEq1, polarEq2)) {
             return std::nullopt;
         }
 
         const scalar semiminorAxisTransferOrbit = (polarEq1 - polarEq2) /
-                (cosDeltaTrueAnomaly1AscendNode - cosDeltaTrueAnomaly2AscendNode);
+                                                  (cosDeltaTrueAnomaly1AscendNode - cosDeltaTrueAnomaly2AscendNode);
         const scalar semimajorAxisTransferOrbit = polarEq1 -
-                semiminorAxisTransferOrbit * cosDeltaTrueAnomaly1AscendNode;
+                                                  semiminorAxisTransferOrbit * cosDeltaTrueAnomaly1AscendNode;
 
         // A1 -- the periapse of 1st Orbit
         // angleBetweenImpulseAndTransversal1 is measured counterclockwise between 0 and 360 deg
         const scalar sinDeltaTrueAnomaly1AscendNode1 = semiminorAxis1 * std::sin(trueAnomaly1 - first.w);
         const scalar periapseA1 = polarEq1 / std::sqrt(first.a) -
-                sinDeltaTrueAnomaly1AscendNode1 * std::atan(angleBetweenImpulseAndTransversal1);
+                                  sinDeltaTrueAnomaly1AscendNode1 * std::atan(angleBetweenImpulseAndTransversal1);
 
         // A2 -- the periapse of 2nd Orbit
         // angleBetweenImpulseAndTransversal2 is measured counterclockwise between 0 and 360 deg
         const scalar sinDeltaTrueAnomaly2AscendNode2 = semiminorAxis2 * std::sin(trueAnomaly2 - final.w);
         const scalar periapseA2 = polarEq2 / std::sqrt(final.a) -
-                sinDeltaTrueAnomaly2AscendNode2 * std::atan(angleBetweenImpulseAndTransversal2);
+                                  sinDeltaTrueAnomaly2AscendNode2 * std::atan(angleBetweenImpulseAndTransversal2);
 
         return parametersForTransfer{polarEq1, polarEq2,
                                      angleBetweenImpulseAndTransversal1, angleBetweenImpulseAndTransversal2,
@@ -92,51 +99,69 @@ namespace Maneuvers {
                                      semimajorAxisTransferOrbit};
     }
 
-    scalar getFunctionForMinimum(const parametersForTransfer &paramsForTransfer){
+    scalar getFunctionForMinimum(const parametersForTransfer &paramsForTransfer) {
 
-       const scalar H = ((paramsForTransfer.polarEq1 + paramsForTransfer.semimajorAxisTransferOrbit) /
-               paramsForTransfer.periapseA1 / std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) + 1) * std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal1) -
-               ((paramsForTransfer.polarEq2 + paramsForTransfer.semimajorAxisTransferOrbit) /
-                paramsForTransfer.periapseA2 / std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) + 1) * std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal2);
+        const scalar cosAngleBetweenImpulseAndTransversal1 = std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal1);
+        const scalar sinAngleBetweenImpulseAndTransversal1 = std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal1);
+        const scalar cosAngleBetweenImpulseAndTransversal2 = std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal2);
+        const scalar sinAngleBetweenImpulseAndTransversal2 = std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal2);
+        const scalar H = ((paramsForTransfer.polarEq1 + paramsForTransfer.semimajorAxisTransferOrbit) /
+                          paramsForTransfer.periapseA1 / std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) + 1) *
+                         cosAngleBetweenImpulseAndTransversal1 -
+                         ((paramsForTransfer.polarEq2 + paramsForTransfer.semimajorAxisTransferOrbit) /
+                          paramsForTransfer.periapseA2 / std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) + 1) *
+                         cosAngleBetweenImpulseAndTransversal2;
 
-       const scalar G = (paramsForTransfer.polarEq1 / paramsForTransfer.periapseA1 - paramsForTransfer.periapseA1) * std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal1) -
-               (paramsForTransfer.polarEq2 / paramsForTransfer.periapseA2 - paramsForTransfer.periapseA2) * std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal2);
+        const scalar G = (paramsForTransfer.polarEq1 / paramsForTransfer.periapseA1 - paramsForTransfer.periapseA1) *
+                         sinAngleBetweenImpulseAndTransversal1 -
+                         (paramsForTransfer.polarEq2 / paramsForTransfer.periapseA2 - paramsForTransfer.periapseA2) *
+                         sinAngleBetweenImpulseAndTransversal2;
 
-       const scalar F = (paramsForTransfer.polarEq1 - paramsForTransfer.semimajorAxisTransferOrbit) *
-               (1 + std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) / paramsForTransfer.periapseA1) * std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal1) +
-               (paramsForTransfer.polarEq1 - paramsForTransfer.periapseA1 * std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit)) * std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal1) -
-               (paramsForTransfer.polarEq2 - paramsForTransfer.semimajorAxisTransferOrbit) *
-               (1 + std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) / paramsForTransfer.periapseA2) * std::cos(paramsForTransfer.angleBetweenImpulseAndTransversal2) +
-               (paramsForTransfer.polarEq2 - paramsForTransfer.periapseA2 * std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit)) * std::sin(paramsForTransfer.angleBetweenImpulseAndTransversal2);
+        const scalar F = (paramsForTransfer.polarEq1 - paramsForTransfer.semimajorAxisTransferOrbit) *
+                         (1 + std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) / paramsForTransfer.periapseA1) *
+                         cosAngleBetweenImpulseAndTransversal1 +
+                         (paramsForTransfer.polarEq1 -
+                          paramsForTransfer.periapseA1 * std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit)) *
+                         sinAngleBetweenImpulseAndTransversal1 -
+                         (paramsForTransfer.polarEq2 - paramsForTransfer.semimajorAxisTransferOrbit) *
+                         (1 + std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit) / paramsForTransfer.periapseA2) *
+                         cosAngleBetweenImpulseAndTransversal2 +
+                         (paramsForTransfer.polarEq2 -
+                          paramsForTransfer.periapseA2 * std::sqrt(paramsForTransfer.semimajorAxisTransferOrbit)) *
+                        sinAngleBetweenImpulseAndTransversal2;
 
-       return std::sqrt(H * H + G * G + F * F);
+        return std::sqrt(H * H + G * G + F * F);
 
     }
 
     std::array<scalar, 5> computeParametersForVelocity(const EllipticOrbit &first, const EllipticOrbit &final,
                                                        const scalar hTrueAnomaly1, const scalar hTrueAnomaly2,
-                                                       const scalar hAscendNode, const scalar hAngleBetweenImpulseAndTransversal1, const scalar hAngleBetweenImpulseAndTransversal2, const std::size_t count){
+                                                       const scalar hAscendNode,
+                                                       const scalar hAngleBetweenImpulseAndTransversal1,
+                                                       const scalar hAngleBetweenImpulseAndTransversal2,
+                                                       const std::size_t count) {
         auto params = computeParamsForTransfer(first, final, hTrueAnomaly1,
-                                                                hTrueAnomaly2, hAscendNode,
-                                                                hAngleBetweenImpulseAndTransversal1, hAngleBetweenImpulseAndTransversal2);
+                                               hTrueAnomaly2, hAscendNode,
+                                               hAngleBetweenImpulseAndTransversal1,
+                                               hAngleBetweenImpulseAndTransversal2);
         auto noEmptyParams = params.value();
         scalar functionForMin = getFunctionForMinimum(noEmptyParams);
         scalar h1, h2, h3, h4, h5;
-        for (std::size_t hAnomaly1 = 0; hAnomaly1 < count; hAnomaly1++){
+        for (std::size_t hAnomaly1 = 0; hAnomaly1 < count; hAnomaly1++) {
             h1 += hTrueAnomaly1;
-            for (std::size_t hAnomaly2 = 0; hAnomaly2 < count; hAnomaly2++){
+            for (std::size_t hAnomaly2 = 0; hAnomaly2 < count; hAnomaly2++) {
                 h2 += hTrueAnomaly2;
-                for (std::size_t hNode = 0; hNode < count; hNode++){
+                for (std::size_t hNode = 0; hNode < count; hNode++) {
                     h3 += hAscendNode;
-                    for (std::size_t hAngle1 = 0; hAngle1 < count; hAngle1++){
+                    for (std::size_t hAngle1 = 0; hAngle1 < count; hAngle1++) {
                         h4 += hAngleBetweenImpulseAndTransversal1;
-                        for (std::size_t  hAngle2 = 0; hAngle2 < count; hAngle2++){
+                        for (std::size_t hAngle2 = 0; hAngle2 < count; hAngle2++) {
                             h5 += hAngleBetweenImpulseAndTransversal2;
                             params = computeParamsForTransfer(first, final, h1,
                                                               h2, h3,
                                                               h4, h5);
-                            if(params.has_value()) noEmptyParams = params.value();
-
+                            if (params.has_value()) noEmptyParams = params.value();
+                            else break;
                             functionForMin = std::min(functionForMin, getFunctionForMinimum(noEmptyParams));
                         }
                     }
@@ -144,10 +169,9 @@ namespace Maneuvers {
             }
         }
 
-    return std::array<scalar,5>{h1, h2, h3, h4, h5};
+        return std::array<scalar, 5>{h1, h2, h3, h4, h5};
 
     }
-
 
 
 }
