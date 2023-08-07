@@ -113,16 +113,38 @@ namespace Maneuvers {
 
     }
 
-    std::array<scalar, 3> computeParametersForVelocity(const EllipticOrbit &first, const EllipticOrbit &final,
+    std::array<scalar, 5> computeParametersForVelocity(const EllipticOrbit &first, const EllipticOrbit &final,
                                                        const scalar hTrueAnomaly1, const scalar hTrueAnomaly2,
-                                                       const scalar hAscendNode, const scalar hAngle1, const scalar hAngle2){
+                                                       const scalar hAscendNode, const scalar hAngleBetweenImpulseAndTransversal1, const scalar hAngleBetweenImpulseAndTransversal2, const std::size_t count){
         auto params = computeParamsForTransfer(first, final, hTrueAnomaly1,
                                                                 hTrueAnomaly2, hAscendNode,
-                                                                hAngle1, hAngle2).value();
+                                                                hAngleBetweenImpulseAndTransversal1, hAngleBetweenImpulseAndTransversal2);
+        auto noEmptyParams = params.value();
+        scalar functionForMin = getFunctionForMinimum(noEmptyParams);
+        scalar h1, h2, h3, h4, h5;
+        for (std::size_t hAnomaly1 = 0; hAnomaly1 < count; hAnomaly1++){
+            h1 += hTrueAnomaly1;
+            for (std::size_t hAnomaly2 = 0; hAnomaly2 < count; hAnomaly2++){
+                h2 += hTrueAnomaly2;
+                for (std::size_t hNode = 0; hNode < count; hNode++){
+                    h3 += hAscendNode;
+                    for (std::size_t hAngle1 = 0; hAngle1 < count; hAngle1++){
+                        h4 += hAngleBetweenImpulseAndTransversal1;
+                        for (std::size_t  hAngle2 = 0; hAngle2 < count; hAngle2++){
+                            h5 += hAngleBetweenImpulseAndTransversal2;
+                            params = computeParamsForTransfer(first, final, h1,
+                                                              h2, h3,
+                                                              h4, h5);
+                            if(params.has_value()) noEmptyParams = params.value();
 
-        scalar functionForMin = getFunctionForMinimum(params);
+                            functionForMin = std::min(functionForMin, getFunctionForMinimum(noEmptyParams));
+                        }
+                    }
+                }
+            }
+        }
 
-
+    return std::array<scalar,5>{h1, h2, h3, h4, h5};
 
     }
 
