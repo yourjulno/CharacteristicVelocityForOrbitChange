@@ -13,7 +13,7 @@ foreach(TEST_FILE IN LISTS TEST_SOURCES)
 
     target_link_libraries(
             ${EXECUTABLE_NAME}
-            Velocity	# Подключаем проект
+            CharacteristicVelocityForOrbitChange	# Подключаем проект
             gtest		# Подключаем библиотеку gtest
             gtest_main	# Подключаем библиотеку gtest
     )

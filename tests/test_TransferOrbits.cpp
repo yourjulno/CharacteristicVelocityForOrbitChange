@@ -133,10 +133,10 @@ TEST(transferOrbits, FOURTH) {
 
 TEST(MPI_, FIRST) {
 
-    const scalar semimajorAxis1 = 2;
-    const scalar semimajorAxis2 = 3;
-    const scalar semiminorAxis1 = 2;
-    const scalar semiminorAxis2 = 3;
+    const scalar semimajorAxis1 = 3;
+    const scalar semimajorAxis2 = 2;
+    const scalar semiminorAxis1 = 1;
+    const scalar semiminorAxis2 = 1;
     const scalar resultPeriapse = simpleIterationMethod(semimajorAxis1, semiminorAxis1,
                                                         semimajorAxis2, semiminorAxis2);
     std::cout << resultPeriapse;
