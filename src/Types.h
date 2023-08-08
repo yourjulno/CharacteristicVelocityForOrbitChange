@@ -18,7 +18,6 @@ namespace Maneuvers {
 
     struct EllipticOrbit{
         scalar a;
-        scalar e; // eccentricity
         scalar b; //semiminorAxis
         scalar w;
     };
