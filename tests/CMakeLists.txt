@@ -11,7 +11,8 @@ foreach(TEST_FILE IN LISTS TEST_SOURCES)
     set(EXECUTABLE_NAME run_${TEST_FILE_NAME})
     #    set(GCC_COMPILE_RELEASE_OPTIONS "-O3")
     add_executable(${EXECUTABLE_NAME} ${TEST_FILE}
-            )
+
+    )
     target_link_options(${EXECUTABLE_NAME} PRIVATE -static-libstdc++)
     target_link_libraries(
             ${EXECUTABLE_NAME}
