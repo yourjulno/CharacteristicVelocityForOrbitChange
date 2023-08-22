@@ -62,8 +62,8 @@ TEST(transferOrbits, SECOND) {
 TEST(transferOrbits, THIRD) {
 
     const scalar nu = 3.986028e14;
-    const scalar semimajorAxis1 = 590.0e3;
-    const scalar semimajorAxis2 = 600.0e3;
+    const scalar semimajorAxis1 = 35e3;
+    const scalar semimajorAxis2 = 40e3;
     const scalar eccentricity1 = 0;
     const scalar eccentricity2 = 0;
     const scalar inclination1 = 0;

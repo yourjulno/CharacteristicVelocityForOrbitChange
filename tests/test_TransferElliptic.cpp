@@ -51,7 +51,7 @@ TEST(computeParametersForVelocity, FIRST){
     const EllipticOrbit first = {semimajorAxis1, semiminorAxis1, ascendNode1};
     const EllipticOrbit final = {semimajorAxis2, semiminorAxis2, ascendNode2};
 
-    const std::size_t count = 400;
+    const std::size_t count = 50;
     const CountsForSteps counts = {count, count,
                                    count};
     const scalar trashHold = 0.01;
@@ -79,14 +79,14 @@ TEST(functional, FIRST) {
     const EllipticOrbit first = {semimajorAxis1, semiminorAxis1, ascendNode1};
     const EllipticOrbit final = {semimajorAxis2, semiminorAxis2, ascendNode2};
 
-    const std::size_t count = 500;
+    const std::size_t count = 10;
     const CountsForSteps counts = {count, count,
                                    count};
     const scalar trashHold = 0.01;
     const auto result = computeParametersForVelocity_(first, final, counts, trashHold);
     const auto deltaV = computeVelocity(first, final, result);
     std::cout << result.value().semimajorAxisTransferOrbit << " ";
-    //std::cout << result.value().periapseA1 << " ";
+    std::cout << deltaV << " ";
     std::cout << result.value().angleBetweenImpulseAndTransversal1 * 180 / M_PI << " ";
     std::cout << result.value().trueAnomaly1 * 180 / M_PI << " ";
     std::cout << result.value().trueAnomaly2 * 180 / M_PI << " ";

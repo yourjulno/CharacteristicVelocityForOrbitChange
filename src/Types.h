@@ -20,6 +20,7 @@ namespace Maneuvers {
         scalar a;
         scalar b; //semiminorAxis
         scalar w;
+        scalar e;
     };
 }  // namespace Maneuvers
 
